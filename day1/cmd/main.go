@@ -108,7 +108,6 @@ func (r *RingA) MoveRigth(n int, sol *int) int {
 
 func (r *RingB) MoveLeft(n int, sol *int) int {
 	effectiveN := n % r.size
-	rounds := n / r.size
 	r.current = (r.current - effectiveN + r.size) % r.size
 
 	if r.current == 0 {
