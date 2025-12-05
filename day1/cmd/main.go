@@ -3,7 +3,6 @@ package cmd1
 import (
 	"bufio"
 	"os"
-	"path/filepath"
 	"strconv"
 
 	"go.uber.org/zap"
@@ -32,14 +31,13 @@ func initLog() *zap.SugaredLogger {
 	return logger.Sugar()
 }
 
-func Main() {
+func Main(path string) int {
 
 	logger := initLog()
 	defer logger.Sync()
 
 	var solution int
 
-	path := filepath.Join("day1", "input1")
 	file, err := os.Open(path)
 
 	if err != nil {
@@ -48,7 +46,6 @@ func Main() {
 	defer file.Close()
 
 	ring := RingB{RING_SIZE, make([]int, RING_SIZE), INITIAL_POSITION}
-	
 
 	for i := range RING_SIZE {
 		ring.list[i] = i
@@ -81,11 +78,11 @@ func Main() {
 	}
 
 	logger.Infof("Solution is %d", solution)
+	return solution
 }
 
 func (r *RingA) MoveLeft(n int, sol *int) int {
-	effectiveN := n % r.size
-	r.current = (r.current - effectiveN + r.size) % r.size
+	r.current = (r.current - n + r.size) % r.size
 
 	if r.current == 0 {
 		*sol++
@@ -105,24 +102,29 @@ func (r *RingA) MoveRigth(n int, sol *int) int {
 }
 
 
-
 func (r *RingB) MoveLeft(n int, sol *int) int {
-	effectiveN := n % r.size
-	r.current = (r.current - effectiveN + r.size) % r.size
-
+	var rounds int
 	if r.current == 0 {
-		*sol++
+		rounds = n / r.size
 	}
+
+	if r.current != 0 && n >= r.current {
+		rounds = ((n - r.current) / r.size) + 1
+	}
+
+	r.current = (((r.current - n) % r.size) + r.size) % r.size
+	
+	*sol += rounds
 
 	return *sol
 }
 
 func (r *RingB) MoveRigth(n int, sol *int) int {
-	r.current = (r.current + n) % r.size
+	
+	rounds := (r.current + n) / r.size
+	*sol += rounds
 
-	if r.current == 0 {
-		*sol++
-	}
+	r.current = (r.current + n) % r.size
 
 	return *sol
 }

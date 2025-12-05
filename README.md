@@ -13,4 +13,6 @@ go test ./...
 ```
 
 ### Run benchmarks
-#### TODO
+```
+go test ./day1/cmd -bench=. -benchmem
+```
