@@ -231,6 +231,6 @@ func TestMain(t *testing.T) {
 
 func BenchmarkMain(b *testing.B) {
 	for b.Loop() {
-		Main(filepath.Join("..", "..", "day1", "input1"))
+		Main(filepath.Join("..", "..", "day1", "input"))
 	}
  }
