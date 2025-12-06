@@ -55,7 +55,7 @@ func Main(path string) int {
 	}
 	for i:=beginning; i<=ending; i++ {
 		backToString := fmt.Sprintf("%d", i)
-		if len(backToString) < 2 {
+		if len(backToString) % 2 != 0 {
 			continue
 		}
 		firstHalf := backToString[0:len(backToString)/2]
