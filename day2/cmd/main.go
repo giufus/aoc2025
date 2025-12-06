@@ -21,6 +21,7 @@ func Main(path string) int {
 	intervals := strings.Split(fileContent, ",")
 	var solution atomic.Int64
 	doneChan := make(chan struct{})
+	defer close(doneChan)
 	
 	for _, interval := range(intervals) {
 		intervalSlice := strings.Split(interval, "-")
@@ -31,36 +32,42 @@ func Main(path string) int {
 			log.Println(err)
 		}
 
-		go func(s string, e string, sol *atomic.Int64) {
-			beginning, err := strconv.Atoi(s)
-			if err != nil {
-				log.Println("not valid beginning")
-			}
-			ending, err := strconv.Atoi(e)
-			if err != nil {
-				log.Println("not valid ending")
-			}
-			for i:=beginning; i<=ending; i++ {
-				backToString := fmt.Sprintf("%d", i)
-				if len(backToString) < 2 {
-					continue
-				}
-				firstHalf := backToString[0:len(backToString)/2]
-				secondHalf := backToString[len(backToString)/2:]
-				if firstHalf == secondHalf {
-					log.Printf("found an illegal %d\n", i)
-					sol.Add((int64)(i))
-				}
-			}
-			doneChan <- struct{}{}
-		}(start, end, &solution)
+		go sumIllegals_1(start, end, &solution, doneChan)
 	}
 
-	for i := 0; i < len(intervals); i++ {
+	for range intervals {
 		<-doneChan
 	}
 
 	log.Printf("Solution 2 %v\n", solution.Load())
 
 	return int(solution.Load())
+ }
+
+ func sumIllegals_1(s string, e string, sol *atomic.Int64, doneChan chan struct{}) {
+	beginning, err := strconv.Atoi(s)
+	if err != nil {
+		log.Println("not valid beginning")
+	}
+	ending, err := strconv.Atoi(e)
+	if err != nil {
+		log.Println("not valid ending")
+	}
+	for i:=beginning; i<=ending; i++ {
+		backToString := fmt.Sprintf("%d", i)
+		if len(backToString) < 2 {
+			continue
+		}
+		firstHalf := backToString[0:len(backToString)/2]
+		secondHalf := backToString[len(backToString)/2:]
+		if firstHalf == secondHalf {
+			log.Printf("found an illegal %d\n", i)
+			sol.Add((int64)(i))
+		}
+	}
+	doneChan <- struct{}{}
+}
+
+func sumIllegals_2(s string, e string, sol *atomic.Int64, doneChan chan struct{}) {
+	panic("not yet baby")
  }
