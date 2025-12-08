@@ -32,7 +32,7 @@ func Main(path string) int {
 			log.Println(err)
 		}
 
-		go sumIllegals_1(start, end, &solution, doneChan)
+		go sumIllegals_2(start, end, &solution, doneChan)
 	}
 
 	for range intervals {
@@ -45,6 +45,10 @@ func Main(path string) int {
  }
 
  func sumIllegals_1(s string, e string, sol *atomic.Int64, doneChan chan struct{}) {
+	defer func() {
+		doneChan <- struct{}{}
+	}()
+
 	beginning, err := strconv.Atoi(s)
 	if err != nil {
 		log.Println("not valid beginning")
@@ -65,9 +69,46 @@ func Main(path string) int {
 			sol.Add((int64)(i))
 		}
 	}
-	doneChan <- struct{}{}
 }
 
 func sumIllegals_2(s string, e string, sol *atomic.Int64, doneChan chan struct{}) {
-	panic("not yet baby")
- }
+	defer func() {
+		doneChan <- struct{}{}
+	}()
+
+	beginning, err := strconv.Atoi(s)
+	if err != nil {
+		log.Printf("not valid beginning in interval %s-%s", s, e)
+		return
+	}
+	ending, err := strconv.Atoi(e)
+	if err != nil {
+		log.Printf("not valid ending in interval %s-%s", s, e)
+		return
+	}
+
+	for i := beginning; i <= ending; i++ {
+		backToString := fmt.Sprintf("%d", i)
+		n := len(backToString)
+
+		if n < 2 {
+			continue
+		}
+
+		// The length 'l' of the potential repeating pattern
+		// must be a divisor of the total string length.
+		for l := 1; l <= n/2; l++ {
+			if n%l == 0 {
+				pattern := backToString[0:l]
+				expected := strings.Repeat(pattern, n/l)
+				if backToString == expected {
+					//log.Printf("found an illegal %d\n", i)
+					sol.Add(int64(i))
+					// Break the inner loop to avoid adding the same number multiple times
+					// (e.g., 888888 is a repeat of "8", "88", and "888").
+					break
+				}
+			}
+		}
+	}
+}
