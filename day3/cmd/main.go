@@ -18,19 +18,19 @@ func Main(path string) int {
 	// Convert the byte slice to a string.
 	fileContent := string(content)
 	lines := strings.Split(fileContent, "\n")
-	var solution atomic.Int32
+	var solution atomic.Int64	
 	doneChan := make(chan struct{})
 	defer close(doneChan)
 
 	for _,line := range lines {
 		
-		go func(line string, tot *atomic.Int32)  {
+		go func(line string, tot *atomic.Int64)  {
 			defer func() {
 				doneChan <- struct{}{}
 			}()
 			
-			 power := joltage(line, tot)
-			 (*tot).Add(int32(power))
+			 power := joltageV2(line, tot)
+			 (*tot).Add(int64(power))
 			 
 		}(line, &solution)
 	}
@@ -76,4 +76,55 @@ func joltage(line string, total *atomic.Int32) int {
 	}
 
 	return sol
+}
+
+// greedy
+func joltageV2(line string, total *atomic.Int64) int64 {
+
+	
+	const k = 12 // The desired length of the number
+
+	if len(line) < k {
+		log.Printf("line is too short to find a %d-digit number: %s", k, line)
+		return 0
+	}
+
+	var resultBuilder strings.Builder
+	resultBuilder.Grow(k)
+
+	currentSearchIndex := 0
+
+	for i := 0; i < k; i++ {
+		// Determine the end of the search window for the current digit.
+		// We must leave enough characters for the remaining digits.
+		remainingNeeded := k - (i + 1)
+		endSearchIndex := len(line) - 1 - remainingNeeded
+
+		// Find the best character ('0' through '9') in the current window
+		bestChar := byte('0' - 1) // Start with a character smaller than '0'
+		bestCharIndex := -1
+
+		for j := currentSearchIndex; j <= endSearchIndex; j++ {
+			if line[j] > bestChar {
+				bestChar = line[j]
+				bestCharIndex = j
+			}
+		}
+
+		// Append the best character found to our result
+		resultBuilder.WriteByte(bestChar)
+
+		// The next search must start after the character we just picked
+		currentSearchIndex = bestCharIndex + 1
+	}
+
+	resultStr := resultBuilder.String()
+	sol, err := strconv.Atoi(resultStr)
+	if err != nil {
+		log.Printf("can't convert result to int: %s", resultStr)
+		return 0
+	}
+
+	log.Printf("joltageV2 found: %d", sol)
+	return (int64)(sol)
 }
